@@ -1,0 +1,177 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "1f2315b5-c5bb-45d7-b1ee-412222d75991",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def upis(niz, stupac, M, L):\n",
+    "    f = open(\"matrice.txt\", \"a\")\n",
+    "    \n",
+    "    # upis niza x u datoteku\n",
+    "    f.write(\"{0} {1}\".format(stupac[0],niz[0].rjust(11)))\n",
+    "    for i in range(L-1):\n",
+    "        f.write(\"{0} \".format(niz[i+1].rjust(22)))\n",
+    "    f.write('\\n')\n",
+    "\n",
+    "    f.write(\"{0} \".format(stupac[1]))\n",
+    "    for i in range(L):\n",
+    "        f.write(\"%.20f \" % M[0][i])\n",
+    "    \n",
+    "    f.write('\\n')\n",
+    "\n",
+    "    f.write(\"{0} \".format(stupac[2]))\n",
+    "    for i in range(L):\n",
+    "        f.write(\"%.20f \" % M[1][i])\n",
+    "        \n",
+    "    f.write('\\n\\n')\n",
+    "    \n",
+    "    f.close()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "09581211-c4cf-45b9-a7cb-cc417b3ad99f",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def max(x, y):\n",
+    "    if(x >= y): return x\n",
+    "    return y"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "c0542327-32b0-4155-b9b8-98eca91b5459",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "tranzicijske_vjerojatnosti = open(\"kocke_t.txt\", \"r\")\n",
+    "emisijske_vjerojatnosti = open(\"kocke_e.txt\", \"r\")\n",
+    "\n",
+    "s1 = tranzicijske_vjerojatnosti.readline()\n",
+    "s2 = tranzicijske_vjerojatnosti.readline()\n",
+    "\n",
+    "stanjeP = float(s1.split()[0])\n",
+    "prijelaz_P_u_N = float(s1.split()[1])\n",
+    "prijelaz_N_u_P = float(s2.split()[0])\n",
+    "stanjeN = float(s2.split()[1])\n",
+    "\n",
+    "\n",
+    "s1 = emisijske_vjerojatnosti.readline()\n",
+    "s2 = emisijske_vjerojatnosti.readline()\n",
+    "\n",
+    "postenaKocka = []\n",
+    "nepostenaKocka = []\n",
+    "\n",
+    "for i in range(6):\n",
+    "    postenaKocka.append(float(s1.split()[i]))\n",
+    "    nepostenaKocka.append(float(s2.split()[i]))\n",
+    "\n",
+    "tranzicijske_vjerojatnosti.close()\n",
+    "emisijske_vjerojatnosti.close()\n",
+    "\n",
+    "x =\"123455666666123452\"\n",
+    "\n",
+    "L = len(x)\n",
+    "niz = []\n",
+    "stupac = []\n",
+    "tmp = []\n",
+    "M = []\n",
+    "\n",
+    "\n",
+    "for i in range(L):\n",
+    "    niz.append(x[i])\n",
+    "\n",
+    "stupac.append(r'S\\N')\n",
+    "stupac.append('P  ')\n",
+    "stupac.append('N  ')\n",
+    "\n",
+    "for i in range(L):\n",
+    "    tmp.append(0.0)\n",
+    "\n",
+    "for i in range(2):\n",
+    "    M.append(tmp[:])\n",
+    "\n",
+    "M[0][0] = postenaKocka[int(niz[0])-1]\n",
+    "M[1][0] = nepostenaKocka[int(niz[0])-1]\n",
+    "\n",
+    "for i in range(L-1):\n",
+    "\n",
+    "    a = M[0][i] * stanjeP\n",
+    "    b = M[1][i] * prijelaz_N_u_P\n",
+    "    M[0][i+1] = max(a, b) * postenaKocka[int(niz[i+1])-1]\n",
+    "    \n",
+    "    a = M[1][i] * stanjeN\n",
+    "    b = M[0][i] * prijelaz_P_u_N\n",
+    "    M[1][i+1] = max(a, b) * nepostenaKocka[int(niz[i+1])-1]\n",
+    "\n",
+    "upis(niz, stupac, M, L)\n",
+    "\n",
+    "prolaz = ''\n",
+    "\n",
+    "i = L - 1"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "d7c70b12-28da-4002-9907-14069f935e08",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Optimalni prolaz niza \"123455666666123452\"  je: PPPPPPNNNNNNPPPPPP\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "while(i > -1):\n",
+    "    \n",
+    "    if(i == L - 1):\n",
+    "        if( M[0][i] >= M[1][i]): prolaz = 'P'\n",
+    "        else: prolaz = 'N'\n",
+    "\n",
+    "    else:\n",
+    "        if(prolaz[0] == 'P'):\n",
+    "            if(M[0][i] * stanjeP * postenaKocka[int(niz[i+1])-1] == M[0][i+1]): prolaz = 'P' + prolaz\n",
+    "            else: prolaz = 'N' + prolaz\n",
+    "\n",
+    "        else:\n",
+    "            if(M[1][i] * stanjeN * nepostenaKocka[int(niz[i+1])-1] == M[1][i+1]): prolaz = 'N' + prolaz\n",
+    "            else: prolaz = 'P' + prolaz \n",
+    "    i = i - 1\n",
+    "\n",
+    "print (\"Optimalni prolaz niza \\\"{0}\\\"  je: {1}\\n\".format(x, prolaz))"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.7.8"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
